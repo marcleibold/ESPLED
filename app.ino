@@ -3,7 +3,7 @@
 #include <ESP8266WiFi.h>
 
 #define REST_PORT 8080
-#define MAX_RECONNECT 10
+#define MAX_RECONNECT 20
 
 String defaultSSID = WiFi.macAddress() + "_network"; // unique network per esp
 String defaultPassword = "espdefault";
@@ -15,13 +15,18 @@ void setup()
     Serial.begin(115200);
     WiFi.setSleepMode(WIFI_NONE_SLEEP);
     WiFi.softAP(defaultSSID, defaultPassword);
-    // Serial.print("Connecting");
-    // while (WiFi.status() != WL_CONNECTED)
-    // {
-    //     delay(500);
-    //     Serial.print(".");
-    // }
+    WiFi.begin();
+    Serial.print("Connecting");
+    uint8 retries = 0;
+    while ((WiFi.status() != WL_CONNECTED) && retries < MAX_RECONNECT) {
+        delay(500);
+        Serial.print(".");
+        retries++;
+    }
     Serial.println("");
+    if (!(WiFi.localIP().toString() == NULL)) {
+        Serial.println("WiFi IP: " + WiFi.localIP().toString());
+    }
     Serial.print("IP: ");
     Serial.println(WiFi.softAPIP());
     routing();
