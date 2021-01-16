@@ -24,11 +24,13 @@ void setup()
         retries++;
     }
     Serial.println("");
-    if (!(WiFi.localIP().toString() == NULL)) {
+    if (!(WiFi.localIP().toString() == "(IP unset)")) {
         Serial.println("WiFi IP: " + WiFi.localIP().toString());
+        WiFi.softAPdisconnect(true);
+    } else {
+        Serial.print("IP: ");
+        Serial.println(WiFi.softAPIP());
     }
-    Serial.print("IP: ");
-    Serial.println(WiFi.softAPIP());
     routing();
     server.begin();
 }
@@ -40,10 +42,6 @@ void loop()
 
 void routing()
 {
-    server.on("/", HTTP_GET, []() {
-        server.send(200, "text/html", "ESP8266 REST Server\n");
-    });
-
     server.on("/connect", HTTP_PUT, []() {
         if (server.hasArg("plain") == false) {
             server.send(400);
@@ -52,18 +50,13 @@ void routing()
 
         StaticJsonDocument<139> doc;
         String body = server.arg("plain");
-        Serial.println(body);
         deserializeJson(doc, body);
         String ssid = doc["ssid"];
         String pass = doc["pass"];
-        Serial.println(ssid);
-        Serial.println(pass);
         if (ssid == NULL && pass == NULL) {
             server.send(400);
             return;
         }
-        Serial.println("In Progress");
-        // WiFi.softAPdisconnect(true);
         WiFi.begin(ssid, pass);
         uint8 retries = 0;
         while ((WiFi.status() != WL_CONNECTED) && retries < MAX_RECONNECT) { //go back to AP Mode
@@ -78,10 +71,9 @@ void routing()
             WiFi.disconnect();
             Serial.println("Back to normal.");
         } else {
-            Serial.print("Connected to: ");
-            Serial.println(ssid);
+            Serial.println("Connected to: " + ssid);
             server.send(201, "text/plain", "Connected to " + ssid + " as " + WiFi.localIP().toString() + "\n");
-            Serial.println("Done.");
+            WiFi.softAPdisconnect(true);
         }
     });
 
