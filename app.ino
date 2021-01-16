@@ -77,6 +77,14 @@ void routing()
         }
     });
 
+    server.on("/disconnect", HTTP_POST, []() {
+        if (WiFi.status() == WL_CONNECTED) {
+            Serial.println("Disconnecting");
+            WiFi.disconnect();
+            ESP.reset(); //delete saved creds
+        }
+    });
+
     server.on("/rgb", HTTP_POST, []() {
         if (server.hasArg("plain") == false) {
             server.send(400);
