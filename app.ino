@@ -1,9 +1,16 @@
+// Webserver
 #include <ArduinoJson.h>
 #include <ESP8266WebServer.h>
 #include <ESP8266WiFi.h>
 
 #define REST_PORT 8080
 #define MAX_RECONNECT 20
+
+// LED
+#include <Adafruit_NeoPixel.h>
+
+#define LED_PIN 12 // D6 - GPIO12
+#define LED_COUNT 10 // Later further configured via /configure route
 
 String defaultSSID = WiFi.macAddress() + "_network"; // unique network per esp
 String defaultPassword = "espdefault";
@@ -77,7 +84,7 @@ void routing()
         }
     });
 
-    server.on("/disconnect", HTTP_POST, []() {
+    server.on("/disconnect", HTTP_PUT, []() {
         if (WiFi.status() == WL_CONNECTED) {
             Serial.println("Disconnecting");
             WiFi.disconnect();
