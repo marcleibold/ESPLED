@@ -112,17 +112,19 @@ void routing()
         uint8 r = doc["r"];
         uint8 g = doc["g"];
         uint8 b = doc["b"];
-        changeColor(r, g, b);
+        uint8 brightness = doc["brightness"];
+        changeColor(r, g, b, brightness);
         server.send(200);
     });
 }
 
-void changeColor(uint8 r, uint8 g, uint8 b)
+void changeColor(uint8 r, uint8 g, uint8 b, uint8 brightness)
 {
     if (r == 0 && g == 0 && b == 0) {
         strip.clear();
     } else {
         uint32 color = strip.Color(r, g, b);
         strip.fill(color, 0, LED_COUNT);
+        strip.setBrightness(brightness);
     }
 }
