@@ -104,11 +104,10 @@ void routing()
             return;
         }
 
-        StaticJsonDocument<64> doc;
+        StaticJsonDocument<81> doc;
 
         String body = server.arg("plain");
         deserializeJson(doc, body);
-        Serial.println(body);
         uint8 r = doc["r"];
         uint8 g = doc["g"];
         uint8 b = doc["b"];
