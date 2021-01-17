@@ -6,21 +6,27 @@
 #define REST_PORT 8080
 #define MAX_RECONNECT 20
 
+String defaultSSID = WiFi.macAddress() + "_network"; // unique network per esp
+String defaultPassword = "espdefault";
+
+ESP8266WebServer server(REST_PORT);
+
 // LED
 #include <Adafruit_NeoPixel.h>
 
 #define LED_PIN 12 // D6 - GPIO12
 #define LED_COUNT 10 // Later further configured via /configure route
 
-String defaultSSID = WiFi.macAddress() + "_network"; // unique network per esp
-String defaultPassword = "espdefault";
-
-ESP8266WebServer server(REST_PORT);
+Adafruit_NeoPixel strip(LED_COUNT, LED_PIN);
 
 void setup()
 {
     Serial.begin(115200);
-    WiFi.setSleepMode(WIFI_NONE_SLEEP);
+
+    strip.begin();
+    strip.show(); // initialize to off
+
+    WiFi.setSleepMode(WIFI_NONE_SLEEP); // to avoid random disconnects
     WiFi.softAP(defaultSSID, defaultPassword);
     WiFi.begin();
     Serial.print("Connecting");
@@ -114,7 +120,9 @@ void routing()
 void changeColor(uint8 r, uint8 g, uint8 b)
 {
     if (r == 0 && g == 0 && b == 0) {
-        //off
+        strip.clear();
     } else {
+        uint32 color = strip.Color(r, g, b);
+        strip.fill(color, 0, LED_COUNT);
     }
 }
