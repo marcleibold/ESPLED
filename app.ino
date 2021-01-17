@@ -14,10 +14,10 @@ ESP8266WebServer server(REST_PORT);
 // LED
 #include <Adafruit_NeoPixel.h>
 
-#define LED_PIN 12 // D6 - GPIO12
-uint16 ledCount = 10; // Later configured via /configure route
+uint8 defaultLEDPin = 12; // D6 - GPIO12
+uint16 defaultLEDCount = 10; // Later configured via /configure route
 
-Adafruit_NeoPixel strip(ledCount, LED_PIN);
+Adafruit_NeoPixel strip(defaultLEDCount, defaultLEDPin);
 
 void setup()
 {
@@ -115,6 +115,29 @@ void routing()
         changeColor(r, g, b, brightness);
         server.send(200);
     });
+
+    server.on("/configure", HTTP_PUT, []() {
+        if (server.hasArg("plain") == false) {
+            server.send(400);
+            return;
+        }
+
+        StaticJsonDocument<48> doc;
+
+        String body = server.arg("plain");
+        deserializeJson(doc, body);
+
+        uint16 ledCount = doc["ledCount"];
+        uint8 ledPin = doc["ledPin"];
+
+        if (ledCount > 0 && ledCount != defaultLEDCount) {
+            strip.updateLength(ledCount);
+        }
+        if (ledPin > 0 && ledPin != defaultLEDPin) {
+            strip.setPin(ledPin);
+        }
+        server.send(201);
+    });
 }
 
 void changeColor(uint8 r, uint8 g, uint8 b, uint8 brightness)
@@ -124,7 +147,7 @@ void changeColor(uint8 r, uint8 g, uint8 b, uint8 brightness)
         strip.show();
     } else {
         uint32 color = strip.Color(r, g, b);
-        strip.fill(color, 0, ledCount);
+        strip.fill(color, 0, strip.numPixels());
         strip.setBrightness(brightness);
         strip.show();
     }
