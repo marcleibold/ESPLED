@@ -15,9 +15,9 @@ ESP8266WebServer server(REST_PORT);
 #include <Adafruit_NeoPixel.h>
 
 #define LED_PIN 12 // D6 - GPIO12
-#define LED_COUNT 10 // Later further configured via /configure route
+uint16 ledCount = 10; // Later configured via /configure route
 
-Adafruit_NeoPixel strip(LED_COUNT, LED_PIN);
+Adafruit_NeoPixel strip(ledCount, LED_PIN);
 
 void setup()
 {
@@ -119,11 +119,13 @@ void routing()
 
 void changeColor(uint8 r, uint8 g, uint8 b, uint8 brightness)
 {
-    if (r == 0 && g == 0 && b == 0) {
-        strip.clear();
+    if ((r == 0 && g == 0 && b == 0) || brightness == 0) {
+        strip.clear(); // off
+        strip.show();
     } else {
         uint32 color = strip.Color(r, g, b);
-        strip.fill(color, 0, LED_COUNT);
+        strip.fill(color, 0, ledCount);
         strip.setBrightness(brightness);
+        strip.show();
     }
 }
