@@ -17,6 +17,9 @@ ESP8266WebServer server(REST_PORT);
 uint8 defaultLEDPin = 12; // D6 - GPIO12
 uint16 defaultLEDCount = 10; // Later configured via /configure route
 
+uint16 ledCount = defaultLEDCount;
+uint8 ledPin = defaultLEDPin;
+
 Adafruit_NeoPixel strip(defaultLEDCount, defaultLEDPin);
 
 void setup()
@@ -100,7 +103,19 @@ void routing()
 
     server.on("/ping", HTTP_GET, []() {
         Serial.println("Received Ping");
-        server.send(200, "text/plain", "Pong");
+
+        StaticJsonDocument<82> doc;
+
+        doc["mac"] = WiFi.macAddress();
+        JsonObject config = doc.createNestedObject("config");
+        config["ledCount"] = ledCount;
+        config["ledPin"] = ledPin;
+
+        String output;
+        serializeJson(doc, output);
+
+        Serial.println(output);
+        server.send(200, "text/plain", output);
     });
 
     server.on("/rgb", HTTP_POST, []() {
@@ -132,8 +147,8 @@ void routing()
         String body = server.arg("plain");
         deserializeJson(doc, body);
 
-        uint16 ledCount = doc["ledCount"];
-        uint8 ledPin = doc["ledPin"];
+        ledCount = doc["ledCount"];
+        ledPin = doc["ledPin"];
 
         if (ledCount > 0 && ledCount != defaultLEDCount) {
             strip.updateLength(ledCount);
