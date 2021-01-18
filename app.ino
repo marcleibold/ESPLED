@@ -98,6 +98,11 @@ void routing()
         }
     });
 
+    server.on("/ping", HTTP_GET, []() {
+        Serial.println("Received Ping");
+        server.send(200, "text/plain", "Pong");
+    });
+
     server.on("/rgb", HTTP_POST, []() {
         if (server.hasArg("plain") == false) {
             server.send(400);
