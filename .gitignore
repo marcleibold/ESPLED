@@ -1,2 +1,4 @@
 .history
 .vscode
+config.h
+build/*
